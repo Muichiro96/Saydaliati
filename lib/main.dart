@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -11,14 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-   late GoogleMapController mapController;
-
-
   String _appTitle= 'Home';
   int _selectedIndex = 0;
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
   static const List<Widget> _widgetOptions = <Widget>[
     Text(
       'Index 0: Home',
@@ -28,12 +24,8 @@ class _HomePageState extends State<HomePage> {
       'Index 1: List',
 
     ),
-   GoogleMap(
-  initialCameraPosition: CameraPosition(
-  target: LatLng(-33.86, 151.20),
-  zoom: 14
-  ),
-  ), Text(
+   Map()
+  , Text(
       'Index 2: Profile',
 
     ), Text(
@@ -143,4 +135,47 @@ class MyApp extends StatelessWidget {
       home:   HomePage(),debugShowCheckedModeBanner: false,
       )
     );}
+}
+class Map extends StatefulWidget {
+  const Map({super.key});
+
+  @override
+  State<Map> createState() => _MapState();
+}
+
+class _MapState extends State<Map> {
+  GoogleMapController? mapController;
+  Location location = Location(); // Create a Location instance
+  Set<Marker> markers = {};
+
+  void _onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    final userLocation = await location.getLocation();
+    setState(() {
+      markers.add(Marker(
+        markerId: MarkerId('myLocation'),
+        position: LatLng(userLocation.latitude!, userLocation.longitude!),
+        infoWindow: InfoWindow(title: 'Your Location'),
+      ));
+      mapController?.animateCamera(CameraUpdate.newLatLngZoom(
+        LatLng(userLocation.latitude!, userLocation.longitude!),
+        15, // Adjust zoom level as needed
+      ));
+    });
+  }
+  @override
+  Widget build(BuildContext context) {
+    return
+
+    GoogleMap(
+
+        initialCameraPosition: CameraPosition(
+        target: LatLng( 30.4241, -9.5962),
+        zoom: 7
+    ),markers :markers,onMapCreated: _onMapCreated);
+  }
 }
