@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -132,9 +132,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SafeArea(child: MaterialApp(
 
-      home:   HomePage(),debugShowCheckedModeBanner: false,
-      )
-    );}
+      home: HomePage(), debugShowCheckedModeBanner: false,
+    )
+    );
+  }
+
 }
 class Map extends StatefulWidget {
   const Map({super.key});
@@ -145,37 +147,60 @@ class Map extends StatefulWidget {
 
 class _MapState extends State<Map> {
   GoogleMapController? mapController;
-  Location location = Location(); // Create a Location instance
-  Set<Marker> markers = {};
-
-  void _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
+  LatLng? _center;
+  Position? _currentPosition;
+  @override
+  void initState() {
+    super.initState();
     _getUserLocation();
   }
-
-  Future<void> _getUserLocation() async {
-    final userLocation = await location.getLocation();
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+  _getUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+// Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return;
+    }
+// Request permission to get the user's location
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      return;
+    }
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        return;
+      }
+    }
+// Get the current location of the user
+    _currentPosition = await Geolocator.getCurrentPosition();
     setState(() {
-      markers.add(Marker(
-        markerId: MarkerId('myLocation'),
-        position: LatLng(userLocation.latitude!, userLocation.longitude!),
-        infoWindow: InfoWindow(title: 'Your Location'),
-      ));
-      mapController?.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng(userLocation.latitude!, userLocation.longitude!),
-        15, // Adjust zoom level as needed
-      ));
+      _center = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
     });
   }
   @override
   Widget build(BuildContext context) {
-    return
+    return _center == null
+          ? const Center(child: CircularProgressIndicator())
+        :GoogleMap(
+          onMapCreated: _onMapCreated,
+          initialCameraPosition: CameraPosition(
+            target: _center!,
+            zoom: 15.0,
+          ),
+          markers: {
+            Marker(
+              markerId: const MarkerId('user_location'),
+              position: _center!,
+              infoWindow: const InfoWindow(title: 'Your Location'),
+            ),
+          },
 
-    GoogleMap(
-
-        initialCameraPosition: CameraPosition(
-        target: LatLng( 30.4241, -9.5962),
-        zoom: 7
-    ),markers :markers,onMapCreated: _onMapCreated);
+    );
   }
 }
