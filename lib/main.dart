@@ -140,11 +140,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SafeArea(child: MaterialApp(
 
-      home:   GoogleMap(
-        initialCameraPosition: CameraPosition(
-            target: LatLng(-33.86, 151.20),
-            zoom: 14
-        ),
+      home:   HomePage(),debugShowCheckedModeBanner: false,
       )
-    ));}
+    );}
 }
