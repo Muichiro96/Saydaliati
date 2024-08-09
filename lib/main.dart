@@ -149,6 +149,7 @@ class _MapState extends State<Map> {
   GoogleMapController? mapController;
   LatLng? _center;
   Position? _currentPosition;
+  Set<Marker> markers ={};
   @override
   void initState() {
     super.initState();
@@ -156,6 +157,9 @@ class _MapState extends State<Map> {
   }
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+  }
+  _onClick(){
+
   }
   _getUserLocation() async {
     bool serviceEnabled;
@@ -181,26 +185,25 @@ class _MapState extends State<Map> {
     _currentPosition = await Geolocator.getCurrentPosition();
     setState(() {
       _center = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+      markers.add(Marker(
+        markerId: const MarkerId('user_location'),
+        position: _center!,
+        infoWindow: const InfoWindow(title: 'Votre position'),
+      ));
     });
   }
   @override
   Widget build(BuildContext context) {
     return _center == null
           ? const Center(child: CircularProgressIndicator())
-        :GoogleMap(
+        :Stack(children:<Widget>[GoogleMap(
           onMapCreated: _onMapCreated,
           initialCameraPosition: CameraPosition(
             target: _center!,
             zoom: 15.0,
           ),
-          markers: {
-            Marker(
-              markerId: const MarkerId('user_location'),
-              position: _center!,
-              infoWindow: const InfoWindow(title: 'Your Location'),
-            ),
-          },
+          markers: markers,
 
-    );
+    ),Align(alignment: Alignment.bottomRight ,child:FloatingActionButton(onPressed: _onClick))]);
   }
 }
