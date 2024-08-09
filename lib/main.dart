@@ -147,7 +147,7 @@ class _MapState extends State<Map> {
   @override
   void initState() {
     BitmapDescriptor.asset(
-        ImageConfiguration(size: Size(90, 80)), 'images/myposition.png')
+        const ImageConfiguration(size: Size(90, 80)), 'images/myposition.png')
         .then((onValue) {
       myIcon = onValue;
     });
@@ -160,7 +160,7 @@ class _MapState extends State<Map> {
     mapController = controller;
   }
 
-  _onClick() {}
+
   _getUserLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -217,10 +217,9 @@ class _MapState extends State<Map> {
               markers: pharmacieMarkers.isEmpty?markers:pharmacieMarkers,
             ),
 
-            Align(
-              child: SpeedDial(
+            Align( alignment: Alignment.topRight,child: SpeedDial(
                 animatedIcon: AnimatedIcons.menu_close,
-                animatedIconTheme: IconThemeData(size: 22),
+                animatedIconTheme: const IconThemeData(size: 22),
                 backgroundColor: Colors.green,
                 direction: SpeedDialDirection.down,
                 visible: true,
@@ -228,7 +227,7 @@ class _MapState extends State<Map> {
                 children: [
                   // FAB 1
                   SpeedDialChild(
-                      child: Icon(
+                      child: const Icon(
                         Icons.nightlight,
                         size: 28,
                         color: Colors.white,
@@ -236,14 +235,14 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: () {/* do anything */},
                       label: 'Pharmacies De Garde Nuit',
-                      labelStyle: TextStyle(
+                      labelStyle: const TextStyle(
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                       ),
                       labelBackgroundColor: Colors.green),
                   // FAB 2
                   SpeedDialChild(
-                      child: Icon(
+                      child: const Icon(
                         Icons.sunny,
                         color: Colors.yellow,
                       ),
@@ -252,21 +251,21 @@ class _MapState extends State<Map> {
                         setState(() {
                           pharmacieMarkers.clear();
                           pharmacieMarkers.add(userLocation!);
-                          pharmacieMarkers.add(Marker(markerId: const MarkerId('me'),
-                            position: LatLng(30.404247371001976, -9.530346668948358),
-                            infoWindow: const InfoWindow(title: 'test'),
+                          pharmacieMarkers.add(const Marker(markerId: MarkerId('me'),
+                            position:  LatLng(30.404247371001976, -9.530346668948358),
+                            infoWindow:  InfoWindow(title: 'test'),
                           ));
                         });
 
                       },
                       label: 'Pharmacies De Garde Jour',
-                      labelStyle: TextStyle(
+                      labelStyle: const TextStyle(
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                           ),
                       labelBackgroundColor: Colors.green),
                   SpeedDialChild(
-                      child: Icon(
+                      child: const Icon(
                         Icons.history,
                         size: 28,
                         color: Colors.blueGrey,
@@ -274,13 +273,13 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: () {/* do anything */},
                       label: 'Pharmacies De Garde 24h',
-                      labelStyle: TextStyle(
+                      labelStyle: const TextStyle(
                         fontWeight: FontWeight.w500,
                         color: Colors.white,
                       ),
                       labelBackgroundColor: Colors.green),
                   SpeedDialChild(
-                      child: Icon(
+                      child: const Icon(
                         Icons.near_me,
                         size: 28,
                         color: Colors.blueAccent,
@@ -288,14 +287,14 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: () {/* do anything */},
                       label: 'Pharmacies Proche De Moi',
-                      labelStyle: TextStyle(
+                      labelStyle: const TextStyle(
                         fontWeight: FontWeight.w500,
                         color: Colors.white,
                       ),
                       labelBackgroundColor: Colors.green),
                 ],
-              ),
-              alignment: Alignment.topRight,
+              )
+
             )
           ]);
   }
