@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:postgres/postgres.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -136,14 +137,24 @@ class Map extends StatefulWidget {
 }
 
 class _MapState extends State<Map> {
+  Connection? conn;
   BitmapDescriptor? myIcon;
   GoogleMapController? mapController;
   Marker? userLocation;
   String? _city;
+  DateTime? date;
   LatLng? _center;
   Position? _currentPosition;
   Set<Marker> markers = {};
   Set<Marker> pharmacieMarkers= {};
+  void getConnection() async {
+    conn = await Connection.open(Endpoint(
+      host: 'localhost',
+      database: 'sfa',
+      username: 'postgres',
+      password: 'root',
+    ));
+  }
   @override
   void initState() {
     BitmapDescriptor.asset(
@@ -151,6 +162,9 @@ class _MapState extends State<Map> {
         .then((onValue) {
       myIcon = onValue;
     });
+    getConnection();
+    DateTime now = DateTime.now();
+    date= DateTime(now.year, now.month, now.day);
     super.initState();
 
     _getUserLocation();
@@ -233,7 +247,22 @@ class _MapState extends State<Map> {
                         color: Colors.white,
                       ),
                       backgroundColor: Colors.green,
-                      onTap: () {/* do anything */},
+                      onTap: () {
+                        setState(() async{
+                          pharmacieMarkers.clear();
+                          pharmacieMarkers.add(userLocation!);
+                          final results=await conn!.execute(r'SELECT p.nom,p.adresse,p.telephone,p.lattitude,p.longitude, g.date,g.type,v.nom FROM villes AS v INNER JOIN pharmacies AS pON v.idVille = p.ville_id INNER JOIN garde_pharmacie AS gp ON p.idPharmacie = gp.pharmacie_id INNER JOIN gardes AS g ON gp.garde_id = g.idGarde WHERE v.nom = $1 AND g.date =$2 AND g.type=$3',parameters: [_city,date,'Nuit']);
+                          for(final pharmacie in results){
+                            final latitude =double.parse(pharmacie[3].toString());
+                            final longitude =double.parse(pharmacie[4].toString());
+                            pharmacieMarkers.add(Marker(markerId: MarkerId('nuit'),
+                              position:  LatLng(latitude,longitude ),
+                              infoWindow:  InfoWindow(title: pharmacie[0].toString()),
+                            ));
+                          };
+
+                        });
+                      },
                       label: 'Pharmacies De Garde Nuit',
                       labelStyle: const TextStyle(
                           fontWeight: FontWeight.w500,
@@ -248,13 +277,19 @@ class _MapState extends State<Map> {
                       ),
                       backgroundColor: Colors.green,
                       onTap: () {
-                        setState(() {
+                        setState(() async{
                           pharmacieMarkers.clear();
                           pharmacieMarkers.add(userLocation!);
-                          pharmacieMarkers.add(const Marker(markerId: MarkerId('me'),
-                            position:  LatLng(30.404247371001976, -9.530346668948358),
-                            infoWindow:  InfoWindow(title: 'test'),
+                          final results=await conn!.execute(r'SELECT p.nom,p.adresse,p.telephone,p.lattitude,p.longitude, g.date,g.type,v.nom FROM villes AS v INNER JOIN pharmacies AS pON v.idVille = p.ville_id INNER JOIN garde_pharmacie AS gp ON p.idPharmacie = gp.pharmacie_id INNER JOIN gardes AS g ON gp.garde_id = g.idGarde WHERE v.nom = $1 AND g.date =$2 AND g.type=$3',parameters: [_city,date,'Jour']);
+                          for(final pharmacie in results){
+                            final latitude =double.parse(pharmacie[3].toString());
+                            final longitude =double.parse(pharmacie[4].toString());
+                          pharmacieMarkers.add(Marker(markerId: MarkerId('jour'),
+                          position:  LatLng(latitude,longitude ),
+                          infoWindow:  InfoWindow(title: pharmacie[0].toString()),
                           ));
+                          };
+
                         });
 
                       },
@@ -285,7 +320,20 @@ class _MapState extends State<Map> {
                         color: Colors.blueAccent,
                       ),
                       backgroundColor: Colors.green,
-                      onTap: () {/* do anything */},
+                      onTap: () {  setState(() async{
+                        pharmacieMarkers.clear();
+                        pharmacieMarkers.add(userLocation!);
+                        final results=await conn!.execute(r'SELECT p.nom,p.adresse,p.telephone,p.lattitude,p.longitude, g.date,g.type,v.nom FROM villes AS v INNER JOIN pharmacies AS pON v.idVille = p.ville_id INNER JOIN garde_pharmacie AS gp ON p.idPharmacie = gp.pharmacie_id INNER JOIN gardes AS g ON gp.garde_id = g.idGarde WHERE v.nom = $1 AND g.date =$2 AND g.type=$3',parameters: [_city,date,'24h/24']);
+                        for(final pharmacie in results){
+                          final latitude =double.parse(pharmacie[3].toString());
+                          final longitude =double.parse(pharmacie[4].toString());
+                          pharmacieMarkers.add(Marker(markerId: MarkerId('24'),
+                            position:  LatLng(latitude,longitude ),
+                            infoWindow:  InfoWindow(title: pharmacie[0].toString()),
+                          ));
+                        };
+
+                      });},
                       label: 'Pharmacies Proche De Moi',
                       labelStyle: const TextStyle(
                         fontWeight: FontWeight.w500,
@@ -297,5 +345,33 @@ class _MapState extends State<Map> {
 
             )
           ]);
+  }
+}
+class ListePharmacies extends StatefulWidget {
+  const ListePharmacies({super.key});
+
+  @override
+  State<ListePharmacies> createState() => _ListeState();
+}
+
+class _ListeState extends State<ListePharmacies> {
+  Connection? conn;
+  void getConnection() async {
+    conn = await Connection.open(Endpoint(
+      host: 'localhost',
+      database: 'sfa',
+      username: 'postgres',
+      password: 'root',
+    ));
+  }
+  @override void initState() {
+   final results=conn!.execute("SELECT nom FROM villes");
+
+    
+    super.initState();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
   }
 }
