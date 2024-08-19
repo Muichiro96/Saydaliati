@@ -24,9 +24,9 @@ class _HomePageState extends State<HomePage> {
   static List<Widget> _widgetOptions = <Widget>[
 
 
-    Map(),
-    ListePharmacies(),
-     ContactForm()
+    const Map(),
+    const ListePharmacies(),
+     const ContactForm()
   ];
   void _onItemTapped(int index, String title) {
     setState(() {
@@ -285,7 +285,7 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: () async{
                         final con=await Connection.open(Endpoint(
-                          host: '192.168.11.147',
+                          host: '192.168.11.110',
                           port: 5432,
                           database: 'sfa',
                           username: 'postgres',
@@ -324,7 +324,7 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: () async{
                         final con=await Connection.open(Endpoint(
-                          host: '192.168.11.147',
+                          host: '192.168.11.110',
                           port: 5432,
                           database: 'sfa',
                           username: 'postgres',
@@ -365,7 +365,7 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: () async{
                         final con= await Connection.open(Endpoint(
-                          host: '192.168.11.147',
+                          host: '192.168.11.110',
                           port: 5432,
                           database: 'sfa',
                           username: 'postgres',
@@ -404,7 +404,7 @@ class _MapState extends State<Map> {
                       backgroundColor: Colors.green,
                       onTap: ()async{
     final con= await Connection.open(Endpoint(
-    host: '192.168.11.147',
+    host: '192.168.11.110',
     port: 5432,
     database: 'sfa',
     username: 'postgres',
@@ -454,7 +454,7 @@ class _ListeState extends State<ListePharmacies> {
   List<String> villes=[' '];
   void start() async {
     final conn = await Connection.open(Endpoint(
-      host: '192.168.11.147',
+      host: '192.168.11.110',
       port: 5432,
       database: 'sfa',
       username: 'postgres',
@@ -529,7 +529,7 @@ class _ListeState extends State<ListePharmacies> {
             ),
             onPressed: () async {
     final conn = await Connection.open(Endpoint(
-    host: '192.168.11.147',
+    host: '192.168.11.110',
     port: 5432,
     database: 'sfa',
     username: 'postgres',
@@ -578,17 +578,24 @@ class _ContactFormState extends State<ContactForm> {
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
 
-  void _submitForm() {
-    if (_formKey.currentState?.validate() ?? false) {
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
       // If the form is valid, display a snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Envoi Message')),
       );
 
       // Here you can process the form data, e.g., send it to a server
-      print('Name: ${_nameController.text}');
-      print('Email: ${_emailController.text}');
-      print('Message: ${_messageController.text}');
+      final conn = await Connection.open(Endpoint(
+        host: '192.168.11.110',
+        port: 5432,
+        database: 'sfa',
+        username: 'postgres',
+        password: 'root',
+      ),settings: ConnectionSettings(sslMode: SslMode.disable),);
+      final results=await conn.execute(r'insert into contacts (nom,email,message) values ($1,$2,$3)',parameters: [_nameController,_emailController,_messageController]);
+
+
     }
   }
 
